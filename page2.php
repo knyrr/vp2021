@@ -6,11 +6,13 @@
 	//var_dump($_POST);
 	$today_html =  null;
 	$today_adjective_error = null;
+	$todays_adjective = null;
 	//kontrollin, kas klikite submit nupul
 	if(isset($_POST["submit_todays_adjective"])){
 		//echo "Klikiti nupul";
 		if(!empty($_POST["todays_adjective_input"])){
 			$today_html = "<p>Tänane päev on " . $_POST["todays_adjective_input"] ."</p>";
+			$todays_adjective = $_POST["$todays_adjective_input"];
 		} else {
 			$today_adjective_error = "Palun kirjutage tänase kohta omadusõna.";
 		}
@@ -41,7 +43,38 @@
 	//<img src="photos/pilt.jpg alt=Tallinna Ülikool">
 	$photo_html = '<img src="' .$photo_dir .$all_photos[$photo_num] .'" alt=Tallinna Ülikool">';
 	
-
+	//FOTODE LOEND
+	$photo_list_html = "\n<ul>\n";
+	//tsükkel
+	//for/$i=algväärtus; $i < algväärtus; $i muutumine){...}
+	
+	//<ul>
+	//<li>pilt.jpg</li>
+	//</ul>
+	
+	for ($i =0; $i < $file_count; $i ++) {
+		$photo_list_html.= "<li>" . $all_photos [$i] . "</li> \n";
+	}
+	$photo_list_html.= "</ul>";
+	
+	//FOTO VALIK
+	/* 	<select name="photo_select">
+		<option value="0">tlu_astra_600x400_1.jpg</option> 
+		<option value="1">tlu_astra_600x400_2.jpg</option> 
+		<option value="2">tlu_hoov_600x400_1.jpg</option> 
+		<option value="3">tlu_mare_600x400_1.jpg</option> 
+		<option value="4">tlu_mare_600x400_2.jpg</option> 
+		<option value="5">tlu_terra_600x400_1.jpg</option> 
+		<option value="6">tlu_terra_600x400_2.jpg</option> 
+		<option value="7">tlu_terra_600x400_3.jpg</option> 
+	</select>  */
+	
+	$photo_select_html = '<select name="photo_select">' ."\n";
+	for($i = 0; $i < $file_count; $i ++){
+		$photo_select_html .= '<option value="' .$i .'">' .$all_photos[$i] ."</option> \n";
+	}
+	$photo_select_html .= "</select> \n";
+	
 ?>
 <!DOCTYPE html>
 <html lang="et">
@@ -57,13 +90,20 @@
 	<hr>
 	<!--ekraanivorm-->
 	<form method="post">
-		<input type="text" name="todays_adjective_input" placeholder="Tänase ilma omadus">
+		<input type="text" name="todays_adjective_input" placeholder="Tänase ilma omadus" value="<?php echo $todays_adjective; ?>">
 		<input type="submit" name="submit_todays_adjective" value="Saada ära">
 		<span><?php echo $today_adjective_error; ?></span>
 	</form>
 	<?php echo $today_html; ?>
 	<hr>
 	
-	<?php echo $photo_html; ?>
+	<form method="POST">
+		<?php echo $photo_select_html; ?>
+	</form>
+	
+	<?php 
+		echo $photo_html; 
+		echo $photo_list_html;
+	?>
 </body>
 </html>
