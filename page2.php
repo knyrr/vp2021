@@ -7,12 +7,14 @@
 	$today_html =  null;
 	$today_adjective_error = null;
 	$todays_adjective = null;
+	$photo_select_html = null;
+	$selected_photo_html = null;
 	//kontrollin, kas klikite submit nupul
 	if(isset($_POST["submit_todays_adjective"])){
 		//echo "Klikiti nupul";
 		if(!empty($_POST["todays_adjective_input"])){
-			$today_html = "<p>Tänane päev on " . $_POST["todays_adjective_input"] ."</p>";
-			$todays_adjective = $_POST["$todays_adjective_input"];
+			$today_html = "<p>Tänane päev on " . $_POST["todays_adjective_input"] .".</p>";
+			$todays_adjective = $_POST["todays_adjective_input"];
 		} else {
 			$today_adjective_error = "Palun kirjutage tänase kohta omadusõna.";
 		}
@@ -27,7 +29,7 @@
 	//echo $all_files;
 	//var_dump($all_files);
 	//kontrollin ja võtan  ainult fotod
-	$allowed_photo_types = ["image/jpeg", "image/png"];
+	$allowed_photo_types = ["image/jpeg", "image/png", "image/bmp"];
 	$all_photos = [];
 	foreach ($all_files as $file){
 		$file_info = getimagesize($photo_dir .$file);
@@ -38,10 +40,25 @@
 		} // if isset lõppet
 	} //foreach lõppeb
 	$file_count = count($all_photos);
-	$photo_num = mt_rand(0, $file_count-1); //kiirem kui rand
+	//$photo_num = mt_rand(0, $file_count-1); //kiirem kui rand();
 	//echo $photo_num;
 	//<img src="photos/pilt.jpg alt=Tallinna Ülikool">
-	$photo_html = '<img src="' .$photo_dir .$all_photos[$photo_num] .'" alt=Tallinna Ülikool">';
+	
+
+	//FOTO VALIMISE VORM
+
+	if (isset($_POST["submit_photo_select"])){
+		if (!empty($_POST["photo_select"])){
+			$photo_num = $_POST["photo_select"];
+		}
+		else {
+			$photo_num = mt_rand(0, $file_count-1);
+		}
+	}
+	else {
+		$photo_num = mt_rand(0, $file_count-1);	
+	}
+	$photo_html = '<img src="' .$photo_dir .$all_photos[$photo_num] .'" alt="Tallinna Ülikool">';
 	
 	//FOTODE LOEND
 	$photo_list_html = "\n<ul>\n";
@@ -68,9 +85,15 @@
 		<option value="6">tlu_terra_600x400_2.jpg</option> 
 		<option value="7">tlu_terra_600x400_3.jpg</option> 
 	</select>  */
-	
+
+
 	$photo_select_html = '<select name="photo_select">' ."\n";
+	$photo_select_html .= '<option value="' .$photo_num .'">' .$all_photos[$photo_num] ."</option> \n";	
+
 	for($i = 0; $i < $file_count; $i ++){
+		if ($i == $photo_num ){
+			continue;
+		}
 		$photo_select_html .= '<option value="' .$i .'">' .$all_photos[$i] ."</option> \n";
 	}
 	$photo_select_html .= "</select> \n";
@@ -98,12 +121,21 @@
 	<hr>
 	
 	<form method="POST">
+		<label for="photo_select">Vali pilt:</label>
 		<?php echo $photo_select_html; ?>
+		<input type="submit" name="submit_photo_select" value="Saada ära">		
 	</form>
 	
+
+	
 	<?php 
-		echo $photo_html; 
-		echo $photo_list_html;
+		echo $photo_html;
+	?>
+	
+	<p> <span>Foto: <?php echo $all_photos[$photo_num]; ?></span>
+	
+	<?php
+	echo $photo_list_html;
 	?>
 </body>
 </html>
