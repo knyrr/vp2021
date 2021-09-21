@@ -4,7 +4,7 @@
 	function read_all_films(){
 		//var_dump ($GLOBALS);
 		//loome andmebaasiühenduse mysqli server,kasutaja, parool, andmebaas
-		$conn = new mysqli($GLOBALS["server_host"], $GLOBALS["$server_user_name"], $GLOBALS["$server_password"], $GLOBALS["$database"]); //$conn on klassi mysqli uus objekt, conn=connection
+		$conn = new mysqli($GLOBALS["server_host"], $GLOBALS["server_user_name"], $GLOBALS["server_password"], $GLOBALS["database"]); //$conn on klassi mysqli uus objekt, conn=connection
 		$conn->set_charset("utf8");
 		//valmistan ette SQL päringu: select * from film
 		$stmt = $conn->prepare("select * from film"); //stms=statement
@@ -38,18 +38,18 @@
 	}
 	
 	function store_film($title_input,$year_input,$duration_input,$genre_input,$studio_input,$director_input){
-		$conn = new mysqli($GLOBALS["server_host"], $GLOBALS["$server_user_name"], $GLOBALS["$server_password"], $GLOBALS["$database"]);
+		$conn = new mysqli($GLOBALS["server_host"], $GLOBALS["server_user_name"], $GLOBALS["server_password"], $GLOBALS["database"]);
 		$conn->set_charset("utf8");
 		//SQL: insert into film (pealkiri, aast, kestus, zanr, tootja, lavastaja) values("SUVI"), 1976, 83, "Tallinnfilm", "Arvo Kruusement")
 		$stmt = $conn->prepare("insert into film (pealkiri, aasta, kestus, zanr, tootja, lavastaja) values(?,?,?,?,?,?)");
-		echo conn->error;
+		echo $conn->error;
 		//seon SQL käsuga pärisandmed
 		// i integer d decimal s strig
-		$stmt = ->bind_param("siisss, $title_input, $year_input, $duration_input, $genre_input, $studio_input, $director_input");
+		$stmt->bind_param("siisss", $title_input, $year_input, $duration_input, $genre_input, $studio_input, $director_input);
 		//käsu täitmine
 		$success = null;
 		if($stmt->execute()){
-			$sucess = "Salvestamine õnnestus";
+			$success = "Salvestamine õnnestus";
 		} else {
 			$success = "Salvestamisel tekkis viga:" .$stmt->error;
 		}
