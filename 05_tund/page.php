@@ -1,7 +1,19 @@
 <?php
+	session_start();
 	require_once("fnc_user.php");
+	require_once("fnc_general.php");
 	require_once ("../../../config.php");
 	$author_name = "Martin Rünk";
+	$email = null;
+	$password = null;
+	$notice = null;
+	
+	
+	//sisselogimise kontroll
+	//if(!isset($_SESSION["user_id"])){
+	//header("Location: page.php");
+	//}
+	
 	
 	//VORM
 	//vaatan, mida post meetodil saadeti
@@ -102,7 +114,19 @@
 	
 	//sisse logimine
 	if(isset($_POST ["login_submit"])){
-			$notice = sign_in($_POST["email_input"], $_POST["password_input"]);
+		//kontrollin meiliaadressi
+		if (isset($_POST["email_input"]) and !empty($_POST["email_input"])){
+			$email = filter_var($_POST["email_input"], FILTER_VALIDATE_EMAIL);
+		}
+		//kontrollin salasõna
+		if (isset($_POST["password_input"]) and !empty($_POST["password_input"])){
+			$password = test_input(filter_var($_POST["password_input"], FILTER_SANITIZE_STRING));
+		}
+		if (!empty($email) and !empty($password) and strlen($password) >= 8){
+			$notice = sign_in($email, $password);	
+		} else {
+			$notice = "Kasutajanimi või salasõna on puudulikud";
+		}	
 	}
 ?>
 <!DOCTYPE html>
@@ -117,11 +141,12 @@
 	<p>Õppetöö toimub <a href="https://www.tlu.ee/dt">Tallinna Ülikooli digitehnoloogiate instituudis</a>.</p>
 	<p>Õppetöö toimus 2021. aasta sügisel.</p>
 	<hr>
+	<!--sisselogimine-->
 	<form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
-	<input type="email" name="email_input" placeholder="kasutajatunnus ehk e-post">
+	<input type="email" name="email_input" placeholder="kasutajatunnus ehk e-post" value="<?php echo $email; ?>">
 	<input type="password" name="password_input" placeholder="salasõna">
 	<input type="submit" name="login_submit" value="Logi sisse">
-
+	<span><?php echo $notice; ?></span>
 	<hr>
 	<!--ekraanivorm-->
 	<form method="post">
