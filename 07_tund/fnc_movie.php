@@ -1,5 +1,53 @@
 <?php
 	$database = "if21_martin_ry";
+
+	function format_date($date){
+		$notice = null;
+		$month_names_et = ["jaanuar", "veebruar", "märts", "aprill", "mai", "juuni","juuli", "august", "september", "oktoober", "november", "detsember"];
+		if(!empty($date)){
+			$temp_date = date("d.m.Y", strtotime($date));
+			$day = date("j", strtotime($date));;
+			$month = date("n", strtotime($date));;
+			$year = date("Y", strtotime($date));;
+			$notice = $day .". " .$month_names_et[$month-1] ." " .$year;
+		}
+		return $notice;
+	}
+	
+	function convert_to_hours_mins($duration_in_mins){
+		$notice = null;
+		if(!empty($duration_in_mins)){
+			if ($duration_in_mins == 1){
+				$minutes = $duration_in_mins;
+				$notice = $minutes ." minut";
+			}
+			if ($duration_in_mins > 1 and $duration_in_mins <= 60){
+				$minutes = $duration_in_mins;
+				$notice = $minutes ." minutit";
+			}
+			if ($duration_in_mins > 60 and $duration_in_mins < 120){
+				$hours = floor($duration_in_mins / 60);
+				$minutes = $duration_in_mins % 60;
+				if ($minutes == 0){
+					$notice = $hours ." tund";
+				}	
+				if ($minutes != 0){
+					$notice = $hours ." tund " .$minutes ." minutit";
+				}					
+			}
+			if ($duration_in_mins >= 120){
+				$hours = floor($duration_in_mins / 60);
+				$minutes = $duration_in_mins % 60;
+				if ($minutes == 0){
+					$notice = $hours ." tundi";
+				}	
+				if ($minutes != 0){
+					$notice = $hours ." tundi " .$minutes ." minutit";
+				}					
+			}	
+		}
+		return $notice;	
+	}
 	
     function read_all_persons_for_option($selected){
         $options_html = null;
@@ -62,6 +110,26 @@
         return $options_html;
     }
     
+    function read_all_genres_for_option($selected){
+        $options_html = null;
+        $conn = new mysqli($GLOBALS["server_host"], $GLOBALS["server_user_name"], $GLOBALS["server_password"], $GLOBALS["database"]);
+        $conn->set_charset("utf8");
+        //<option value="x" selected>Film</option>
+        $stmt = $conn->prepare("SELECT id, genre_name FROM genre");
+        $stmt->bind_result($id_from_db, $genre_name_from_db);
+        $stmt->execute();
+        while($stmt->fetch()){
+           $options_html .= '<option value="' .$id_from_db .'"'; 
+           if($selected == $id_from_db){
+                $options_html .= " selected";
+            }
+            $options_html .= ">" .$genre_name_from_db ."</option> \n";
+        }
+        $stmt->close();
+        $conn->close();
+        return $options_html;
+    }	
+	
     function store_person_in_movie($selected_person, $selected_movie, $selected_position, $role){
         $notice = null;
         $conn = new mysqli($GLOBALS["server_host"], $GLOBALS["server_user_name"], $GLOBALS["server_password"], $GLOBALS["database"]);
@@ -88,7 +156,35 @@
         $conn->close();
         return $notice;
     }
-    
+ 
+    function store_genre_for_movie($selected_movie_for_genre, $selected_genre){
+        $notice = null;
+        $conn = new mysqli($GLOBALS["server_host"], $GLOBALS["server_user_name"], $GLOBALS["server_password"], $GLOBALS["database"]);
+        $conn->set_charset("utf8");
+        $stmt = $conn->prepare("SELECT id FROM movie_genre WHERE movie_id = ? AND genre_id = ?");
+		echo $conn->error;
+        $stmt->bind_param("ii", $selected_movie_for_genre, $selected_genre);
+        $stmt->bind_result($id_from_db);
+        $stmt->execute();
+        if($stmt->fetch()){
+            //selline on olemas
+            $notice = "Selline seos on juba olemas!";
+        } else {
+            $stmt->close();
+            $stmt = $conn->prepare("INSERT INTO movie_genre (movie_id, genre_id) VALUES (?, ?)"); 
+			echo $conn->error;
+            $stmt->bind_param("ii", $selected_movie_for_genre, $selected_genre);
+            if($stmt->execute()){
+                $notice = "Uus seos edukalt salvestatud!";
+            } else {
+                $notice = "Uue seose salvestamisle tekkis viga: " .$stmt->error;
+            }
+        }
+        $stmt->close();
+        $conn->close();
+        return $notice;
+    }
+ 
 	function store_person_photo($file_name, $person_id) {
 		$notice = null;
 		$conn = new mysqli($GLOBALS["server_host"], $GLOBALS["server_user_name"], $GLOBALS["server_password"], $GLOBALS["database"]);
@@ -106,6 +202,84 @@
 		return $notice;		
 	}
 	
+	function store_movie($title_input, $year_input, $duration_input, $description_input){
+		$notice = null;
+		$conn = new mysqli($GLOBALS["server_host"], $GLOBALS["server_user_name"], $GLOBALS["server_password"], $GLOBALS["database"]);
+		$conn->set_charset("utf8");
+		$stmt = $conn->prepare("SELECT id FROM movie WHERE title = ? AND production_year = ?");
+		echo $conn->error;
+        $stmt->bind_param("si", $title_input, $year_input);
+        $stmt->bind_result($id_from_db);
+        $stmt->execute();
+        if($stmt->fetch()){
+            $notice = "Selline film on juba olemas!";
+        } else {
+            $stmt->close();
+			$stmt = $conn->prepare("insert into movie (title, production_year, duration, description) values(?,?,?,?)");
+			echo $conn->error;
+			$stmt->bind_param("siis", $title_input, $year_input, $duration_input, $description_input);
+			if($stmt->execute()){
+				$notice = "Filmi salvestamine õnnestus";
+			} else {
+				$notice = "Filmi salvestamisel tekkis viga:" .$stmt->error;
+			}
+		}
+		$stmt->close();
+		$conn->close();
+		return $notice;
+	}
+
+	function store_person($first_name, $last_name, $birth_date){
+		$notice = null;
+		$conn = new mysqli($GLOBALS["server_host"], $GLOBALS["server_user_name"], $GLOBALS["server_password"], $GLOBALS["database"]);
+		$conn->set_charset("utf8");
+		$stmt = $conn->prepare("SELECT id FROM person WHERE first_name = ? AND last_name = ? and birth_date = ?");
+		echo $conn->error;
+        $stmt->bind_param("sss", $first_name, $last_name, $birth_date);
+        $stmt->bind_result($id_from_db);
+        $stmt->execute();
+        if($stmt->fetch()){
+            $notice = "See isik  on juba andmebaasis olemas!";
+        } else {
+            $stmt->close();
+			$stmt = $conn->prepare("insert into person (first_name, last_name, birth_date) values(?,?,?)");
+			echo $conn->error;
+			$stmt->bind_param("sss", $first_name, $last_name, $birth_date);
+			if($stmt->execute()){
+				$notice = "Isiku salvestamine õnnestus";
+			} else {
+				$notice = "Isiku salvestamisel tekkis viga:" .$stmt->error;
+			}
+		}
+		$stmt->close();
+		$conn->close();
+		return $notice;
+	}
+
+	function read_actors_in_films(){
+		$notice = null;
+		$conn = new mysqli($GLOBALS["server_host"], $GLOBALS["server_user_name"], $GLOBALS["server_password"], $GLOBALS["database"]);
+		$conn->set_charset("utf8");
+		$stmt = $conn->prepare("SELECT concat(first_name, ' ', last_name) as full_name, birth_date, role, title, production_year, duration FROM person JOIN person_in_movie ON person.id =  person_in_movie.person_id JOIN movie ON movie.id = person_in_movie.movie_id where person_in_movie.role is not null order by last_name, first_name;");
+		echo $conn->error;
+		$stmt->bind_result($name_from_db, $birth_date_from_db, $role_from_db, $title_from_db, $production_year_from_db, $duration_from_db);
+		$stmt->execute();
+		if($stmt->fetch()){
+			$notice .= "\n <table> \n <tr> \n <th>Nimi</th> \n <th>Sünniaeg</th> \n <th>Roll</th> \n <th>Film</th> \n <th>Valmimisaasta</th> \n <th>Pikkus</th> \n</tr> \n";
+			while($stmt->fetch()){	
+				$notice .= "<td>" .$name_from_db ."</td>";			
+				$notice .= "<td>" .format_date($birth_date_from_db) ."</td>";
+				$notice .= "<td>" .$role_from_db ."</td>";
+				$notice .= "<td>" .$title_from_db ."</td>";
+				$notice .= "<td>" .$production_year_from_db ."</td>";
+				$notice .= "<td>" .convert_to_hours_mins($duration_from_db) ."</td> \n </tr> \n";				
+			}
+			$notice .= "</table>";
+		}
+		$stmt->close();
+		$conn->close();
+		return	$notice;	
+	}
 	
     //--------- Vana osa ---------------------------------------------
 	function read_all_films(){

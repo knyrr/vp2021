@@ -89,6 +89,28 @@
 		//move_uploaded_file($_FILES["photo_input"]["tmp_name"], $person_photo_dir .$_FILES["photo_input"]["name"]);
 	}
 	
+	$movie_genre_notice = null;
+	$selected_movie_for_genre = null;
+	$selected_genre = null;
+	
+	if(isset($_POST["movie_genre_submit"])){
+		if(isset($_POST["movie_select_for_genre"]) and !empty($_POST["movie_select_for_genre"])){
+			$selected_movie_for_genre = filter_var($_POST["movie_select_for_genre"], FILTER_VALIDATE_INT);
+		}
+		if(empty($selected_movie_for_genre)){
+			$movie_genre_notice .= "Film on valimata! ";
+		}
+		if(isset($_POST["genre_select"]) and !empty($_POST["genre_select"])){
+			$selected_genre = filter_var($_POST["genre_select"], FILTER_VALIDATE_INT);
+		}
+		if(empty($selected_genre)){
+			$movie_genre_notice .= "Žanr on valimata! ";
+		}		
+		if(empty($movie_for_genre_notice)){
+			$movie_genre_notice = store_genre_for_movie($selected_movie_for_genre, $selected_genre);
+		}	
+	}
+	
 	require_once ("page_header.php");
 ?>
 	<h1><?php echo $_SESSION["user_name"]; ?>, veebiprogrammeerimine</h1>
@@ -145,6 +167,27 @@
 		<input type="submit" name="person_photo_submit" value="Laadi pilt üles">
 	</form>		
 	<span><?php echo $photo_upload_notice; ?></span>
+
+	<h3>Film ja žanr</h3>
+	<form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
+		<label for="movie_select_for_genre">Film:</label>
+		<select name="movie_select_for_genre" id="movie_select_for_genre">
+			<option value="" selected disabled>Vali film</option>
+			<?php echo read_all_movies_for_option($selected_movie_for_genre);?> 
+		</select>
+		
+		<label for="genre_select">Žanr:</label>
+		<select name="genre_select" id="genre_select">
+			<option value="" selected disabled>Vali žanr</option>
+			<?php echo read_all_genres_for_option($selected_genre);?> 
+		</select>
+		
+		<input type="submit" name="movie_genre_submit" value="Salvesta">
+		
+	</form>
+	<span><?php echo $movie_genre_notice; ?></span>
+
+
 </body>
 </html>
 
