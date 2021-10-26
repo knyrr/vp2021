@@ -26,6 +26,7 @@
 		<li><a href="movie_relations.php">Filmi info seoste loomine</a></li>
 		<li><a href="add_movie_info.php">Filmiteabe lisamine andmebaasi</a> versioon 2</li>
 		<li><a href="movie_info.php">Filmiteabe kuvamine</a></li>
+		<li><a href="gallery_photo_upload.php">Fotode üleslaadimine</a></li>
     </ul>
 	<hr>
 </body>
