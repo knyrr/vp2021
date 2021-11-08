@@ -19,6 +19,18 @@
 		return $notice;
 	}
 	
+	function format_date_est_no($date){
+		$notice = null;
+		if(!empty($date)){
+			$temp_date = new DateTime($date);
+			$day = $temp_date->format("d");
+			$month = $temp_date->format("m");
+			$year = $temp_date->format("Y");			
+			$notice = $day ."." .$month ."." .$year;
+		}
+		return $notice;
+	}
+	
 	function convert_to_hours_mins($duration_in_mins){
 		$notice = null;
 		if(!empty($duration_in_mins)){
@@ -52,4 +64,20 @@
 			}	
 		}
 		return $notice;	
+	}
+	
+	function read_photo_uploader($id){
+		$notice = null;
+		$conn = new mysqli($GLOBALS["server_host"], $GLOBALS["server_user_name"], $GLOBALS["server_password"], $GLOBALS["database"]);
+		$conn->set_charset("utf8");
+		$stmt = $conn->prepare("SELECT firstname, lastname FROM vpr_users WHERE id = ?");	
+		echo $conn->error;
+		$stmt->bind_param("i", $id);
+		$stmt->bind_result($firstname_from_db, $lastname_from_db);		
+		if($stmt->execute()){
+			$notice = $firstname_from_db .$lastname_from_db;
+		}		
+		$stmt->close();
+		$conn->close();		
+		return $notice;		
 	}

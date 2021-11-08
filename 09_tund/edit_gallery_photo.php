@@ -13,17 +13,28 @@
 	require_once ("../../../config.php");
 	require_once ("fnc_general.php");
 	require_once ("fnc_gallery.php");
+
+	if(isset($_GET["page"])){
+		$id_from_get = $_GET["page"];
+	}
+
+	$alttext = null;
+	$privacy = null;
+	$update_notice = null;
+	$delete_notice = null;
 	
-	$privacy_from = 2;
-	$page = 1;
-	$limit = 3;
-	$photo_count = count_public_photos($privacy_from);
-	if(!isset($_GET["page"]) or $_GET["page"] < 1){
-		$page = 1;
-	} elseif(round($_GET["page"] - 1) * $limit >= $photo_count){
-		$page = ceil($photo_count / $limit);
-	} else {
-		$page = $_GET["page"];
+    if(isset($_POST["photo_update_submit"])){
+		if(isset($_POST["alt_input"]) and !empty($_POST["alt_input"])){
+			$alttext = test_input(filter_var($_POST["alt_input"], FILTER_SANITIZE_STRING));
+		}
+		if(isset($_POST["privacy_input"]) and !empty($_POST["privacy_input"])){
+			$privacy = filter_var($_POST["privacy_input"], FILTER_VALIDATE_INT);
+		}
+		$update_notice = update_own_photo_data($id_from_get, $alttext, $privacy);
+	}
+	
+	if(isset($_POST["photo_delete_submit"])){
+		$delete_notice = delete_photo($id_from_get);
 	}
 		
 	$to_head = '<link rel="stylesheet" type="text/css" href="style/gallery.css">';
@@ -40,25 +51,15 @@
 	</ul>
 	<hr>
 	
-	<h2>Avalike fotode galerii</h2>
+	<h2>Foto andmete muutmine</h2>
 
 	<div>
 	<p>
-	<?php
-		//<span>Eelmine leht</span> -- <span>Järgmine leht</span>
-		if($page > 1){
-			echo '<span><a href="?page=' .($page - 1) .'">Eelmine leht</a></span>  | ';
-		} else {
-			echo "<span>Eelmine leht</span>  | ";
-		}
-		if($page * $limit < $photo_count){
-			echo '<span><a href="?page=' .($page + 1) .'">Järgmine leht</a></span>';
-		} else {
-			echo "<span>Järgmine leht</span>";
-		}
-	?>
 	</p>
-	<?php echo read_public_photo_thumbs($privacy_from, $page, $limit); ?>
+	<?php echo show_own_photo($id_from_get); ?>
+	<?php echo $update_notice; ?>
+	<?php echo $delete_notice; ?>
+
 	</div>
 
 
